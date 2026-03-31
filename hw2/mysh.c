@@ -11,6 +11,7 @@
 
 // Additional headers
 #include <stdbool.h>
+#include <pwd.h>
 
 
 // What the shell prompts the user
@@ -61,13 +62,18 @@ int main(void) {
         if (strcmp(args[0], "cd") == 0) {
             if (args[1] != NULL) {
                 int result = chdir(args[1]);
-                printf("%d\n", result);
+
+                // Debug print statement to see result of chdir
+                //printf("%d\n", result);
+
                 if (result == -1)  {
                     perror("cd failed");
                 }
             }
             else {
-                chdir("~");
+                // Default to user's home directory if no path is provided
+                char *home = getenv("HOME");
+                chdir(home);
             }
 
             // Do not continue to fork
