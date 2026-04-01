@@ -85,18 +85,83 @@ int main(void) {
             break;
         }
 
+        // Output Redirection (Look for >)
+
+        char output_symbol = '>';
+        char input_symbol = '<';
+        int output_index = -1;
+        int input_index = -1;
+        char* output_filename;
+        char* input_filename;
+
+        // Look for target
+        for (int i = 0; i < arg_count; ++i) {
+            char* arg = args[i];
+            char first_char = *arg;
+            if (first_char == output_symbol) {
+                output_index = i;
+            }
+            else if (first_char == input_symbol) {
+                input_index = i;
+            }
+        }
+
+        // Set filename variable and then set args of > and filename to NULL
+        // So the command is run properly
+        if (output_index > -1 ) {
+            output_filename = args[output_index + 1];
+            args[output_index] = NULL;
+        }
+        if (input_index > -1) {
+            input_filename = args[input_index + 1];
+            args[input_index] = NULL;
+        }
+
         // Fork
 
-        // -1 failed; 0 child; >0 child pid
         pid_t pid = fork();
 
         if (pid == 0) {
+            // CHILD
             // args[0] = program name to execute
+
+            // Redirect output to file
+            if (output_index > -1) {
+                // 0644 sets the mode of the file (6 = Owner: Read + Write)
+                int fd = open(output_filename, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+
+                if (fd == -1) {
+                    // Invalid file descriptor
+                    perror("File could not be created");
+                    exit(EXIT_FAILURE);
+                }
+                else {
+                    // Valid file descriptor
+                    dup2(fd, STDOUT_FILENO);
+                    close(fd);
+                }
+            }
+
+            // Read input from file
+            if (input_index > -1) {
+                int fd = open(input_filename, O_RDONLY);
+                if (fd == -1) {
+                    // Invalid file descriptor
+                    perror("File could not be read");
+                    exit(EXIT_FAILURE);
+                }
+                else {
+                    dup2(fd, STDIN_FILENO);
+                    close(fd);
+                }
+            }
+
             execvp(args[0], args);
             perror("execvp failed");
             exit(EXIT_FAILURE);
         }
         else if (pid > 0) {
+            // PARENT
             // Wait for the child
             waitpid(pid, NULL, 0);
         }
