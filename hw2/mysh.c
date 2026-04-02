@@ -18,10 +18,12 @@
 // Made a constant in case I want to change it later
 char SHELL_INPUT_PROMPT[6] = "mysh> ";
 
+
+
 int main(void) {
 
     char line[1024];
-    char *pArgs[64];
+    char *p_args[64];
     int arg_count;
 
     while (true) {
@@ -42,11 +44,11 @@ int main(void) {
 
         // Tokenize user input
         arg_count = 0;
-        pArgs[arg_count] = strtok(line, " ");
+        p_args[arg_count] = strtok(line, " ");
 
-        while (pArgs[arg_count] != NULL) {
+        while (p_args[arg_count] != NULL) {
             arg_count++;
-            pArgs[arg_count] = strtok(NULL, " ");
+            p_args[arg_count] = strtok(NULL, " ");
         }
 
         // Echo back tokenized user input (Debug)
@@ -59,9 +61,9 @@ int main(void) {
         // Built-in commands
 
         // cd
-        if (strcmp(pArgs[0], "cd") == 0) {
-            if (pArgs[1] != NULL) {
-                int result = chdir(pArgs[1]);
+        if (strcmp(p_args[0], "cd") == 0) {
+            if (p_args[1] != NULL) {
+                int result = chdir(p_args[1]);
 
                 // Debug print statement to see result of chdir
                 //printf("%d\n", result);
@@ -72,8 +74,8 @@ int main(void) {
             }
             else {
                 // Default to user's home directory if no path is provided
-                char *pHome = getenv("HOME");
-                chdir(pHome);
+                char *p_home = getenv("HOME");
+                chdir(p_home);
             }
 
             // Do not continue to fork
@@ -81,7 +83,7 @@ int main(void) {
         }
 
         // exit
-        if (strcmp(pArgs[0], "exit") == 0) {
+        if (strcmp(p_args[0], "exit") == 0) {
             break;
         }
 
@@ -91,13 +93,13 @@ int main(void) {
         char input_symbol = '<';
         int output_index = -1;
         int input_index = -1;
-        char *output_filename = NULL;
-        char *input_filename = NULL;
+        char *p_output_filename = NULL;
+        char *p_input_filename = NULL;
 
         // Look for target
         for (int i = 0; i < arg_count; ++i) {
-            char *pArg = pArgs[i];
-            char first_char = *pArg;
+            char *p_arg = p_args[i];
+            char first_char = *p_arg;
             if (first_char == output_symbol) {
                 output_index = i;
             }
@@ -109,12 +111,12 @@ int main(void) {
         // Set filename variable and then set args of > and filename to NULL
         // So the command is run properly
         if (output_index > -1 ) {
-            output_filename = pArgs[output_index + 1];
-            pArgs[output_index] = NULL;
+            p_output_filename = p_args[output_index + 1];
+            p_args[output_index] = NULL;
         }
         if (input_index > -1) {
-            input_filename = pArgs[input_index + 1];
-            pArgs[input_index] = NULL;
+            p_input_filename = p_args[input_index + 1];
+            p_args[input_index] = NULL;
         }
 
         // Pipe
@@ -122,10 +124,10 @@ int main(void) {
         char pipe_symbol = '|';
         int pipe_index = -1; // Midpoint
 
-        // Look for target
+        // Look for pipe symbol
         for (int i = 0; i < arg_count; ++i) {
-            char* pArg = pArgs[i];
-            char first_char = *pArg;
+            char* p_arg = p_args[i];
+            char first_char = *p_arg;
             if (first_char == pipe_symbol) {
                 pipe_index = i;
             }
@@ -143,7 +145,7 @@ int main(void) {
             // Redirect output to file
             if (output_index > -1) {
                 // 0644 sets the mode of the file (6 = Owner: Read + Write)
-                int fd = open(output_filename, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+                int fd = open(p_output_filename, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 
                 if (fd == -1) {
                     // Invalid file descriptor
@@ -159,7 +161,7 @@ int main(void) {
 
             // Read input from file
             if (input_index > -1) {
-                int fd = open(input_filename, O_RDONLY);
+                int fd = open(p_input_filename, O_RDONLY);
                 if (fd == -1) {
                     // Invalid file descriptor
                     perror("File could not be read");
@@ -171,7 +173,7 @@ int main(void) {
                 }
             }
 
-            execvp(pArgs[0], pArgs);
+            execvp(p_args[0], p_args);
             perror("execvp failed");
             exit(EXIT_FAILURE);
         }
