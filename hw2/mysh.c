@@ -7,7 +7,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <signal.h>
 
 // Additional headers
 #include <stdbool.h>
@@ -119,7 +118,6 @@ int main(void) {
 
         // Pipe
 
-        /*
         char pipe_symbol = '|';
         int pipe_index = -1; // Midpoint
 
@@ -129,9 +127,51 @@ int main(void) {
             char first_char = *p_arg;
             if (first_char == pipe_symbol) {
                 pipe_index = i;
+                break;
             }
         }
-        */
+
+        // If pipe symbol was found
+        if (pipe_index > -1) {
+            p_args[pipe_index] = NULL;
+
+            char **left_command = &p_args[0];
+            char **right_command = &p_args[pipe_index];
+
+            int pipefd[2];
+            pipe(pipefd);
+
+            // Child 1 (Producer)
+            pid_t pid1 = fork();
+            if (pid1 == 0) {
+                close(pipefd[0]);
+                dup2(pipefd[1], STDOUT_FILENO); // Redirect std out to pipe write
+                close(pipefd[1]);
+                execvp(p_args[0], &p_args[0]);
+                perror("execvp failed");
+                exit(EXIT_FAILURE);
+            }
+
+            // Child 2 (Consumer)
+            pid_t pid2 = fork();
+            if (pid2 == 0) {
+                close(pipefd[1]);
+                dup2(pipefd[0], STDIN_FILENO); // Redirect std out to pipe write
+                close(pipefd[0]);
+                execvp(p_args[pipe_index + 1], &p_args[pipe_index + 1]);
+                perror("execvp failed");
+                exit(EXIT_FAILURE);
+            }
+
+            // Parent
+            close(pipefd[0]);
+            close(pipefd[1]);
+            waitpid(pid1, NULL, 0);
+            waitpid(pid2, NULL, 0);
+
+            // Seperate pipe fork logic from general fork logic for simplicity
+            continue;
+        }
 
         // Fork
 
