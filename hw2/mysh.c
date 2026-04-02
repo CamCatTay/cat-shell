@@ -18,8 +18,6 @@
 // Made a constant in case I want to change it later
 char SHELL_INPUT_PROMPT[6] = "mysh> ";
 
-
-
 int main(void) {
 
     char line[1024];
@@ -33,8 +31,8 @@ int main(void) {
         // Get user input
         if  (fgets(line, sizeof(line), stdin) != NULL) {
             // Strip new line character
-            char *pNewline = strchr(line, '\n');
-            if (pNewline) *pNewline = '\0';
+            char *p_newline = strchr(line, '\n');
+            if (p_newline) *p_newline = '\0';
         }
         else {
             // EOF
@@ -121,6 +119,7 @@ int main(void) {
 
         // Pipe
 
+        /*
         char pipe_symbol = '|';
         int pipe_index = -1; // Midpoint
 
@@ -132,6 +131,7 @@ int main(void) {
                 pipe_index = i;
             }
         }
+        */
 
 
         // Fork
