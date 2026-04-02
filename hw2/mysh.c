@@ -48,12 +48,8 @@ int main(void) {
             p_args[arg_count] = strtok(NULL, " ");
         }
 
-        // Echo back tokenized user input (Debug)
-        /*
-        for (int i = 0; i < arg_count; ++i) {
-            printf("Token %d: %s\n", i, args[i]);
-        }
-        */
+        // Skip empty input
+        if (arg_count == 0) continue;
 
         // Built-in commands
 
@@ -96,7 +92,7 @@ int main(void) {
         // Look for target
         for (int i = 0; i < arg_count; ++i) {
             char *p_arg = p_args[i];
-            char first_char = *p_arg;
+            char first_char = p_arg[0];
             if (first_char == output_symbol) {
                 output_index = i;
             }
@@ -124,6 +120,7 @@ int main(void) {
         // Look for pipe symbol
         for (int i = 0; i < arg_count; ++i) {
             char* p_arg = p_args[i];
+            if (p_arg == NULL) continue; // Skips over NULL preventing seg fault
             char first_char = *p_arg;
             if (first_char == pipe_symbol) {
                 pipe_index = i;
