@@ -21,7 +21,7 @@ char SHELL_INPUT_PROMPT[6] = "mysh> ";
 int main(void) {
 
     char line[1024];
-    char *args[64];
+    char *pArgs[64];
     int arg_count;
 
     while (true) {
@@ -31,8 +31,8 @@ int main(void) {
         // Get user input
         if  (fgets(line, sizeof(line), stdin) != NULL) {
             // Strip new line character
-            char *newline = strchr(line, '\n');
-            if (newline) *newline = '\0';
+            char *pNewline = strchr(line, '\n');
+            if (pNewline) *pNewline = '\0';
         }
         else {
             // EOF
@@ -42,11 +42,11 @@ int main(void) {
 
         // Tokenize user input
         arg_count = 0;
-        args[arg_count] = strtok(line, " ");
+        pArgs[arg_count] = strtok(line, " ");
 
-        while (args[arg_count] != NULL) {
+        while (pArgs[arg_count] != NULL) {
             arg_count++;
-            args[arg_count] = strtok(NULL, " ");
+            pArgs[arg_count] = strtok(NULL, " ");
         }
 
         // Echo back tokenized user input (Debug)
@@ -59,9 +59,9 @@ int main(void) {
         // Built-in commands
 
         // cd
-        if (strcmp(args[0], "cd") == 0) {
-            if (args[1] != NULL) {
-                int result = chdir(args[1]);
+        if (strcmp(pArgs[0], "cd") == 0) {
+            if (pArgs[1] != NULL) {
+                int result = chdir(pArgs[1]);
 
                 // Debug print statement to see result of chdir
                 //printf("%d\n", result);
@@ -72,8 +72,8 @@ int main(void) {
             }
             else {
                 // Default to user's home directory if no path is provided
-                char *home = getenv("HOME");
-                chdir(home);
+                char *pHome = getenv("HOME");
+                chdir(pHome);
             }
 
             // Do not continue to fork
@@ -81,7 +81,7 @@ int main(void) {
         }
 
         // exit
-        if (strcmp(args[0], "exit") == 0) {
+        if (strcmp(pArgs[0], "exit") == 0) {
             break;
         }
 
@@ -91,13 +91,13 @@ int main(void) {
         char input_symbol = '<';
         int output_index = -1;
         int input_index = -1;
-        char* output_filename;
-        char* input_filename;
+        char *output_filename = NULL;
+        char *input_filename = NULL;
 
         // Look for target
         for (int i = 0; i < arg_count; ++i) {
-            char* arg = args[i];
-            char first_char = *arg;
+            char *pArg = pArgs[i];
+            char first_char = *pArg;
             if (first_char == output_symbol) {
                 output_index = i;
             }
@@ -109,13 +109,28 @@ int main(void) {
         // Set filename variable and then set args of > and filename to NULL
         // So the command is run properly
         if (output_index > -1 ) {
-            output_filename = args[output_index + 1];
-            args[output_index] = NULL;
+            output_filename = pArgs[output_index + 1];
+            pArgs[output_index] = NULL;
         }
         if (input_index > -1) {
-            input_filename = args[input_index + 1];
-            args[input_index] = NULL;
+            input_filename = pArgs[input_index + 1];
+            pArgs[input_index] = NULL;
         }
+
+        // Pipe
+
+        char pipe_symbol = '|';
+        int pipe_index = -1; // Midpoint
+
+        // Look for target
+        for (int i = 0; i < arg_count; ++i) {
+            char* pArg = pArgs[i];
+            char first_char = *pArg;
+            if (first_char == pipe_symbol) {
+                pipe_index = i;
+            }
+        }
+
 
         // Fork
 
@@ -156,7 +171,7 @@ int main(void) {
                 }
             }
 
-            execvp(args[0], args);
+            execvp(pArgs[0], pArgs);
             perror("execvp failed");
             exit(EXIT_FAILURE);
         }
