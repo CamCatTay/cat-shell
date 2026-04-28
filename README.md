@@ -2,6 +2,10 @@
 
 ## Operating Systems Course
 
+### Overview
+Cat Shell (`mysh`) is a simple Unix shell implemented in C for educational purposes. It provides a command-line interface to execute programs, change directories, handle input/output redirection, and supports basic piping. The shell demonstrates core concepts of process management and user interaction in Unix-like operating systems.
+
+
 ### Compile and Run
 
 ```
